@@ -21,9 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * <p>
- * <p>
  * This class represents an immutable bit array data structure where each bit
- * corresponds to a position on a 2D board.
+ * corresponds to a position on a 2D board. Bits are indexed according to a
+ * Little-Endian Rank-File mapping, i.e. the least significant bit is mapped to
+ * the lower left corner of the board and subsequent bits are mapped across each
+ * rank, starting at the first rank. A 3x3 board would be indexed as:
+ * <pre>
+ * 6 7 8
+ * 3 4 5
+ * 0 1 2
+ * </pre>
  *
  * @author Jake Chiang
  * @version 0.1
@@ -45,21 +52,24 @@ public class Bigboard {
 
     // The words that represent the board
     private final long[] words;
+    // Board width
     private final int width;
+    // Board height
     private final int height;
-    private final int size;
+    private final int remainder;
 
     public Bigboard(int width, int height) {
         this.width = width;
         this.height = height;
-        this.size = width * height;
-        this.words = new long[((this.size - 1) >> BITS_PER_WORD) + 1];
+        int size = width * height;
+        this.remainder = size & WORD_SIZE_MASK;
+        this.words = new long[((size - 1) >> BITS_PER_WORD) + 1];
     }
 
     public Bigboard(Bigboard other) {
         this.width = other.width;
         this.height = other.height;
-        this.size = other.size;
+        this.remainder = other.remainder;
         this.words = new long[other.words.length];
         System.arraycopy(other.words, 0, this.words, 0, this.words.length);
     }
@@ -113,6 +123,7 @@ public class Bigboard {
             result.words[i] |= carry;
             carry = newCarry;
         }
+        result.words[result.words.length - 1] &= (1L << result.remainder) - 1;
 
         return result;
     }
@@ -158,15 +169,32 @@ public class Bigboard {
         return result;
     }
 
+    /**
+     * Returns the bit at the given index on the board. Bits are indexed
+     * according to a Little-Endian Rank-File mapping.
+     *
+     * @param index The index of the position on the board to get the bit of.
+     * @return
+     */
     public boolean get(int index) {
         return (this.words[index >> BITS_PER_WORD] & (1L << index)) != 0;
     }
 
     /**
-     * LERF
+     * Returns a String depicting the bits in their board positions. 0 bits are
+     * represented by '.', 1 bits are represented by 'X'. The board is
+     * constructed from the bits in Little-Endian Rank-File mapping.
+     * <p>
+     * For example, a 4x4 board for the binary value of 25 would be:
+     * . . . .
+     * . . . .
+     * X . . .
+     * X . . X
      *
-     * @return
+     * @return A representation of the 2D board showing 0 bits as '.' and 1 bits
+     * as 'X'.
      */
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
@@ -183,5 +211,41 @@ public class Bigboard {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        int result = 1;
+
+        result = result * PRIME + Integer.hashCode(this.width);
+        result = result * PRIME + Integer.hashCode(this.height);
+        for (long word : this.words) {
+            result = result * PRIME + Long.hashCode(word);
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Bigboard)) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+
+        Bigboard other = (Bigboard) o;
+        if (this.width != other.width || this.height != other.height) {
+            return false;
+        }
+
+        for (int i = 0; i < this.words.length; i++) {
+            if (this.words[i] != other.words[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
