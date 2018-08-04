@@ -47,6 +47,10 @@ public class Bigboard {
     //
     // If the board size isn't perfectly divisible by the word size then not all
     // of the bits of the last word will be used. These are the "unused bits."
+    //
+    //
+    // Representation Invariant:
+    // - All unused bits are 0
 
     /**
      * The number of bits needed to address the bits of a word.
@@ -124,6 +128,33 @@ public class Bigboard {
     }
 
     /**
+     * Returns the width of this board.
+     *
+     * @return The width of this board in number of positions.
+     */
+    public int width() {
+        return this.width;
+    }
+
+    /**
+     * Returns the height of this board.
+     *
+     * @return The height of this board in number of positions.
+     */
+    public int height() {
+        return this.height;
+    }
+
+    /**
+     * Returns the total number of positions on this board.
+     *
+     * @return The number of positions on this board.
+     */
+    public int size() {
+        return this.width * this.height;
+    }
+
+    /**
      * Computes bitwise AND with another board and returns the result.
      *
      * @param other The board to compute bitwise AND with.
@@ -178,16 +209,20 @@ public class Bigboard {
      * Computes a bitwise left shift of a given number of bits and returns the
      * result.
      *
-     * @param amount The number of bits to left shift this board.
+     * @param amount The number of bits to left shift this board. Must be
+     *               positive.
      * @return The board that results from bitwise left shifting this board by
      * the given amount.
      */
     public Bigboard left(int amount) {
         Bigboard result = new Bigboard(this);
+        if (amount == 0) {
+            return result;
+        }
 
         int wordShifts = Math.min(amount >> BITS_PER_WORD, result.words.length);
-        for (int i = 0; i < result.words.length - wordShifts; i++) {
-            result.words[i + wordShifts] = result.words[i];
+        for (int i = result.words.length - 1; i >= wordShifts; i--) {
+            result.words[i] = result.words[i - wordShifts];
         }
         for (int i = 0; i < wordShifts; i++) {
             result.words[i] = 0;
@@ -210,12 +245,16 @@ public class Bigboard {
      * Computes a logical bitwise right shift of a given number of bits and
      * returns the result.
      *
-     * @param amount The number of bits to left shift this board.
+     * @param amount The number of bits to left shift this board. Must be
+     *               positive.
      * @return The board that results from bitwise logical right shifting this
      * board by the given amount.
      */
     public Bigboard right(int amount) {
         Bigboard result = new Bigboard(this);
+        if (amount == 0) {
+            return result;
+        }
 
         int wordShifts = Math.min(amount >> BITS_PER_WORD, result.words.length);
         for (int i = 0; i < result.words.length - wordShifts; i++) {
@@ -283,10 +322,26 @@ public class Bigboard {
     }
 
     /**
+     * Computes the bitwise NOT of this board and returns the result as a new
+     * board.
+     *
+     * @return The bitwise NOT of this board.
+     */
+    public Bigboard not() {
+        Bigboard result = new Bigboard(this);
+        for (int i = 0; i < result.words.length; i++) {
+            result.words[i] = ~result.words[i];
+        }
+        zeroUnusedBits(result);
+        return result;
+    }
+
+    /**
      * Returns the bit at the given index on the board. Bits are indexed
      * according to a Little-Endian Rank-File mapping.
      *
      * @param index The index of the position on the board to get the bit of.
+     *              Must be non-negative and less than board width * height.
      * @return True if the bit at the position is 1, false if it is 0.
      */
     public boolean get(int index) {
