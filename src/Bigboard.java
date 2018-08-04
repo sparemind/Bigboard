@@ -25,7 +25,7 @@
  * corresponds to a position on a 2D board. Bits are indexed according to a
  * Little-Endian Rank-File mapping, i.e. the least significant bit is mapped to
  * the lower left corner of the board and subsequent bits are mapped across each
- * rank, starting at the first rank. A 3x3 board would be indexed as:
+ * rank, starting at the first rank. So, a 3x3 board would be indexed as:
  * <pre>
  * 6 7 8
  * 3 4 5
@@ -36,17 +36,31 @@
  * @version 0.1
  */
 public class Bigboard {
+    // A Bigboard consists of multiple "words" stored in an array. Each word
+    // represents a section of the board, starting from the lower left corner.
+    // For example, if words were 3 bits, words A, B, and C would represent a
+    // 3x3 board as:
+    //      C0 C1 C2
+    //      B0 B1 B2
+    //      A0 A1 A2
+    // Where the letter is the word and the number is the bit index of the word.
+    //
+    // If the board size isn't perfectly divisible by the word size then not all
+    // of the bits of the last word will be used. These are the "unused bits."
+
     /**
-     * The number of bits needed to address the bits of a word. Currently a word
-     * is a long (64 bits), so this is 6 (2^6 = 64).
+     * The number of bits needed to address the bits of a word.
+     * Currently a word is a long (64 bits), so this is 6 (2^6 = 64).
      */
     private static final int BITS_PER_WORD = 6;
     /**
      * The number of bits that make a word. Equal to 2^BITS_PER_WORD.
+     * Currently a word is a long, so this is 64.
      */
     private static final int WORD_SIZE = 1 << BITS_PER_WORD;
     /**
      * A bitmask of BITS_PER_WORD 1's in the least significant bit positions.
+     * Currently a word is a long, so this is 0b111111.
      */
     private static final int WORD_SIZE_MASK = WORD_SIZE - 1;
 
@@ -56,24 +70,66 @@ public class Bigboard {
     private final int width;
     // Board height
     private final int height;
-    private final int remainder;
+    // Bitmask of the used bits in the final word
+    private final long partialSizeMask;
 
+    /**
+     * Creates a new bitboard of given width and height.
+     *
+     * @param width  The width of the board. Must be > 0.
+     * @param height The height of the board. Must be > 0.
+     */
     public Bigboard(int width, int height) {
         this.width = width;
         this.height = height;
         int size = width * height;
-        this.remainder = size & WORD_SIZE_MASK;
+        this.partialSizeMask = (1L << (size & WORD_SIZE_MASK)) - 1;
         this.words = new long[((size - 1) >> BITS_PER_WORD) + 1];
     }
 
+    /**
+     * Constructs a new Bigboard of given width and height equal to another
+     * board of the same dimensions represented by a single long. Bits that
+     * don't fit on the board are discarded.
+     *
+     * @param other The other board that this new Bigboard will equal.
+     */
+    public Bigboard(int width, int height, long other) {
+        this(width, height);
+        this.words[0] = other;
+        zeroUnusedBits(this);
+    }
+
+    /**
+     * Constructs a new Bigboard equal to another.
+     *
+     * @param other The Bigboard which this new Bigboard will equal. Must not be
+     *              null.
+     */
     public Bigboard(Bigboard other) {
         this.width = other.width;
         this.height = other.height;
-        this.remainder = other.remainder;
+        this.partialSizeMask = other.partialSizeMask;
         this.words = new long[other.words.length];
         System.arraycopy(other.words, 0, this.words, 0, this.words.length);
     }
 
+    /**
+     * Sets the unused bits of a given board to be 0's.
+     *
+     * @param board The board to zero out the unused bits of.
+     */
+    private static void zeroUnusedBits(Bigboard board) {
+        board.words[board.words.length - 1] &= board.partialSizeMask;
+    }
+
+    /**
+     * Computes bitwise AND with another board and returns the result.
+     *
+     * @param other The board to compute bitwise AND with.
+     * @return The board that results from computing bitwise AND between this
+     * and the other board.
+     */
     public Bigboard and(Bigboard other) {
         assert (this.words.length == other.words.length);
 
@@ -84,6 +140,13 @@ public class Bigboard {
         return result;
     }
 
+    /**
+     * Computes bitwise OR with another board and returns the result.
+     *
+     * @param other The board to compute bitwise OR with.
+     * @return The board that results from computing bitwise OR between this
+     * and the other board.
+     */
     public Bigboard or(Bigboard other) {
         assert (this.words.length == other.words.length);
 
@@ -94,6 +157,13 @@ public class Bigboard {
         return result;
     }
 
+    /**
+     * Computes bitwise XOR with another board and returns the result.
+     *
+     * @param other The board to compute bitwise XOR with.
+     * @return The board that results from computing bitwise XOR between this
+     * and the other board.
+     */
     public Bigboard xor(Bigboard other) {
         assert (this.words.length == other.words.length);
 
@@ -104,6 +174,14 @@ public class Bigboard {
         return result;
     }
 
+    /**
+     * Computes a bitwise left shift of a given number of bits and returns the
+     * result.
+     *
+     * @param amount The number of bits to left shift this board.
+     * @return The board that results from bitwise left shifting this board by
+     * the given amount.
+     */
     public Bigboard left(int amount) {
         Bigboard result = new Bigboard(this);
 
@@ -123,11 +201,19 @@ public class Bigboard {
             result.words[i] |= carry;
             carry = newCarry;
         }
-        result.words[result.words.length - 1] &= (1L << result.remainder) - 1;
+        zeroUnusedBits(result);
 
         return result;
     }
 
+    /**
+     * Computes a logical bitwise right shift of a given number of bits and
+     * returns the result.
+     *
+     * @param amount The number of bits to left shift this board.
+     * @return The board that results from bitwise logical right shifting this
+     * board by the given amount.
+     */
     public Bigboard right(int amount) {
         Bigboard result = new Bigboard(this);
 
@@ -151,21 +237,48 @@ public class Bigboard {
         return result;
     }
 
+    /**
+     * Computes bitwise AND with another board represented by a single long and
+     * returns the result.
+     *
+     * @param other The board to compute bitwise AND with.
+     * @return The board that results from computing bitwise AND between this
+     * and the other board.
+     */
     public Bigboard and(long other) {
         Bigboard result = new Bigboard(this);
         result.words[0] &= other;
+        zeroUnusedBits(result);
         return result;
     }
 
+    /**
+     * Computes bitwise OR with another board represented by a single long and
+     * returns the result.
+     *
+     * @param other The board to compute bitwise OR with.
+     * @return The board that results from computing bitwise OR between this
+     * and the other board.
+     */
     public Bigboard or(long other) {
         Bigboard result = new Bigboard(this);
         result.words[0] |= other;
+        zeroUnusedBits(result);
         return result;
     }
 
+    /**
+     * Computes bitwise XOR with another board represented by a single long and
+     * returns the result.
+     *
+     * @param other The board to compute bitwise XOR with.
+     * @return The board that results from computing bitwise XOR between this
+     * and the other board.
+     */
     public Bigboard xor(long other) {
         Bigboard result = new Bigboard(this);
         result.words[0] ^= other;
+        zeroUnusedBits(result);
         return result;
     }
 
@@ -174,7 +287,7 @@ public class Bigboard {
      * according to a Little-Endian Rank-File mapping.
      *
      * @param index The index of the position on the board to get the bit of.
-     * @return
+     * @return True if the bit at the position is 1, false if it is 0.
      */
     public boolean get(int index) {
         return (this.words[index >> BITS_PER_WORD] & (1L << index)) != 0;
@@ -213,6 +326,9 @@ public class Bigboard {
         return sb.toString();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int hashCode() {
         final int PRIME = 31;
@@ -227,6 +343,12 @@ public class Bigboard {
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Two boards are considered equal if they are the same dimensions and all
+     * bits are equal.
+     */
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Bigboard)) {
