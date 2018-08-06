@@ -1,43 +1,34 @@
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 public class BigboardTest {
-    private static final int ITERATIONS = 64;
-    private static final int SHIFT = 8;
-
-    // Pseudorandom boards
-    private static Bigboard rand13x13;
-    // Testing boards
-    private static Bigboard bb13x13;
-
-    @BeforeAll
-    public static void initialize() {
-        rand13x13 = generatePseudorandom(13, 13);
-
-        bb13x13 = new Bigboard(13, 13, 7000L);
-        bb13x13 = bb13x13.left(13 * 12 - 3).or(7000L);
-    }
-
     /**
-     * Generates a random looking board of a given width and height. The board
-     * will always be the same for the given dimensions.
-     *
-     * @param width  The width of the board to generate.
-     * @param height The height of the board to generate.
-     * @return A random looking board of the given width and height.
+     * Word size in bits being used by Bigboard (currently a long).
      */
-    private static Bigboard generatePseudorandom(int width, int height) {
-        Bigboard b = new Bigboard(width, height);
-
-        for (int i = 0; i < ITERATIONS; i++) {
-            b = b.left(SHIFT).xor(i);
-        }
-
-        return b;
-    }
+    private static final int WORD_SIZE = 64;
+    /**
+     * The number of random tests to run per method.
+     */
+    private static final int RAND_TESTS = 64;
+    /**
+     * Maximum dimension a board can be in a random test (inclusive).
+     */
+    private static final int RAND_SIZE_MAX = 16;
+    /**
+     * Maximum percent of bits that can be 1 for a board in a random test. Must
+     * be in [0, 1.0].
+     */
+    private static final double RAND_BITS_MAX_PERCENT = 1.0;
 
     /**
      * Makes a board of a given width and height with 1 bits at specified
@@ -72,7 +63,7 @@ public class BigboardTest {
         int i = 0;
 
         // Get total size of the board (including unused bits).
-        int realSize = (int) Math.ceil(actual.size() / 64.0) * 64;
+        int realSize = (int) Math.ceil(((double) actual.size()) / WORD_SIZE) * WORD_SIZE;
         for (int j = 0; j < realSize; j++) {
             if (j >= actual.size()) {
                 // Assert that all unused bits are 0
@@ -116,6 +107,77 @@ public class BigboardTest {
         return sb.toString();
     }
 
+    public static int[] and(List<Integer> a, List<Integer> b) {
+        List<Integer> acc = new ArrayList<>(a);
+        acc.retainAll(b);
+        return toArr(acc);
+    }
+
+    /**
+     * Converts a Collection of ints to an array.
+     *
+     * @param col The Collection to convert to an array.
+     * @return An array with the same content as the given Collection.
+     */
+    public static int[] toArr(Collection<Integer> col) {
+        int[] result = new int[col.size()];
+        int i = 0;
+        for (int value : col) {
+            result[i] = value;
+            i++;
+        }
+        return result;
+    }
+
+    private static List<Integer> randArr(Random rand, int width, int height) {
+        Set<Integer> indices = new TreeSet<>();
+
+        int numIndices = (int) (rand.nextDouble() * RAND_BITS_MAX_PERCENT * width * height);
+        int realSize = (int) Math.ceil(((double) width * height) / WORD_SIZE) * WORD_SIZE;
+        for (int i = 0; i < numIndices; i++) {
+            indices.add(rand.nextInt(realSize));
+        }
+
+        return new ArrayList<>(indices);
+    }
+
+    @Test
+    public void testRandom() {
+        Random rand = new Random(0);
+
+        Bigboard b1 = new Bigboard(12, 14, 1L);
+        b1 = b1.left(64);
+        b1 = b1.or(new Bigboard(12, 14, 1L).left(129));
+        System.out.println(b1);
+
+        // Bigboard b = makeBB(12, 14, new int[]{1, 5, 6, 10, 12, 16, 17, 19, 21, 24, 25, 29, 33, 34, 36, 37, 38, 39, 43, 44, 45, 46, 47, 49, 51, 53, 55, 56, 58, 59, 64, 65, 66, 69, 74, 75, 77, 78, 80, 85, 86, 88, 89, 93, 94, 96, 97, 98, 99, 100, 107, 109, 110, 113, 114, 115, 116, 118, 119, 121, 126, 129, 131, 133, 134, 135, 136, 138, 139, 141, 143, 145, 146, 148, 150, 151, 152, 153, 155, 156, 157, 160, 165, 171, 172, 173, 174, 178, 184, 185, 186, 187, 189, 190});
+        Bigboard b = makeBB(12, 14, new int[]{64, 126, 129, 131});
+        System.out.println(b);
+
+        // and(Bigboard)
+        for (int i = 0; i < RAND_TESTS; i++) {
+            System.out.println("Running and(Bigboard) random test #" + i);
+            int width = rand.nextInt(RAND_SIZE_MAX) + 1;
+            int height = rand.nextInt(RAND_SIZE_MAX) + 1;
+            testAndRandom(rand, width, height);
+        }
+    }
+
+    private void testAndRandom(Random rand, int width, int height) {
+        List<Integer> aIndices = randArr(rand, width, height);
+        List<Integer> bIndices = randArr(rand, width, height);
+        Bigboard a = makeBB(width, height, toArr(aIndices));
+        Bigboard b = makeBB(width, height, toArr(bIndices));
+
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(a.and(b));
+        System.out.println(aIndices);
+        System.out.println(bIndices);
+        System.out.println(Arrays.toString(and(aIndices, bIndices)));
+        testEq(and(aIndices, bIndices), a.and(b));
+    }
+
     @Test
     public void testConstructor() {
         // Create many board of different dimensions
@@ -149,11 +211,39 @@ public class BigboardTest {
         // General case
         testEq(new int[]{0, 70, 168}, b0.and(b1));
         testEq(new int[]{0, 70, 168}, b1.and(b0));
+        testEq(new int[]{0}, b0.and(63L));
         // Non-empty AND empty
         testEq(new int[]{}, b0.and(new Bigboard(13, 13)));
         testEq(new int[]{}, new Bigboard(13, 13).and(b0));
+        testEq(new int[]{}, b0.and(0L));
         // Disjoint
         testEq(new int[]{}, b1.and(b2));
         testEq(new int[]{}, b2.and(b1));
+        testEq(new int[]{}, b0.and(14L));
+    }
+
+    @Test
+    public void testOr() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{0, 70, 168});
+        Bigboard b2 = makeBB(13, 13, new int[]{1, 27, 159});
+        Bigboard b3 = makeBB(13, 13, new int[]{15, 70, 155});
+
+        // General case
+        testEq(new int[]{0, 10, 15, 70, 155, 160, 168}, b0.or(b3));
+        testEq(new int[]{0, 10, 15, 70, 155, 160, 168}, b3.or(b0));
+        testEq(new int[]{0, 3, 10, 70, 160, 168}, b0.or(9L));
+        // Sub/super set
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.or(b1));
+        testEq(new int[]{0, 10, 70, 160, 168}, b1.or(b0));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.or(1025L));
+        // Non-empty AND empty
+        testEq(new int[]{0, 70, 168}, b1.or(new Bigboard(13, 13)));
+        testEq(new int[]{0, 70, 168}, new Bigboard(13, 13).or(b1));
+        testEq(new int[]{0, 70, 168}, b1.or(0L));
+        // Disjoint
+        testEq(new int[]{0, 1, 27, 70, 159, 168}, b1.or(b2));
+        testEq(new int[]{0, 1, 27, 70, 159, 168}, b2.or(b1));
+        testEq(new int[]{0, 1, 2, 3, 70, 168}, b1.or(14L));
     }
 }

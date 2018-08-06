@@ -287,6 +287,9 @@ public class Bigboard {
     public Bigboard and(long other) {
         Bigboard result = new Bigboard(this);
         result.words[0] &= other;
+        for (int i = 1; i < result.words.length; i++) {
+            result.words[i] = 0;
+        }
         zeroUnusedBits(result);
         return result;
     }
