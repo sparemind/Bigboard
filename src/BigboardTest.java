@@ -1,7 +1,6 @@
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -145,15 +144,6 @@ public class BigboardTest {
     public void testRandom() {
         Random rand = new Random(0);
 
-        Bigboard b1 = new Bigboard(12, 14, 1L);
-        b1 = b1.left(64);
-        b1 = b1.or(new Bigboard(12, 14, 1L).left(129));
-        System.out.println(b1);
-
-        // Bigboard b = makeBB(12, 14, new int[]{1, 5, 6, 10, 12, 16, 17, 19, 21, 24, 25, 29, 33, 34, 36, 37, 38, 39, 43, 44, 45, 46, 47, 49, 51, 53, 55, 56, 58, 59, 64, 65, 66, 69, 74, 75, 77, 78, 80, 85, 86, 88, 89, 93, 94, 96, 97, 98, 99, 100, 107, 109, 110, 113, 114, 115, 116, 118, 119, 121, 126, 129, 131, 133, 134, 135, 136, 138, 139, 141, 143, 145, 146, 148, 150, 151, 152, 153, 155, 156, 157, 160, 165, 171, 172, 173, 174, 178, 184, 185, 186, 187, 189, 190});
-        Bigboard b = makeBB(12, 14, new int[]{64, 126, 129, 131});
-        System.out.println(b);
-
         // and(Bigboard)
         for (int i = 0; i < RAND_TESTS; i++) {
             System.out.println("Running and(Bigboard) random test #" + i);
@@ -169,12 +159,6 @@ public class BigboardTest {
         Bigboard a = makeBB(width, height, toArr(aIndices));
         Bigboard b = makeBB(width, height, toArr(bIndices));
 
-        System.out.println(a);
-        System.out.println(b);
-        System.out.println(a.and(b));
-        System.out.println(aIndices);
-        System.out.println(bIndices);
-        System.out.println(Arrays.toString(and(aIndices, bIndices)));
         testEq(and(aIndices, bIndices), a.and(b));
     }
 

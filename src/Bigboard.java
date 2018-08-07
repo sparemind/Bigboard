@@ -229,15 +229,17 @@ public class Bigboard {
         }
 
         int partialShift = amount & WORD_SIZE_MASK;
-        long carry = 0;
-        for (int i = 0; i < result.words.length; i++) {
-            long newCarry = result.words[i] >>> (WORD_SIZE - partialShift);
-            result.words[i] <<= partialShift;
-            result.words[i] |= carry;
-            carry = newCarry;
+        if (partialShift != 0) {
+            long carry = 0;
+            for (int i = wordShifts; i < result.words.length; i++) {
+                long newCarry = result.words[i] >>> (WORD_SIZE - partialShift);
+                result.words[i] <<= partialShift;
+                result.words[i] |= carry;
+                carry = newCarry;
+            }
         }
-        zeroUnusedBits(result);
 
+        zeroUnusedBits(result);
         return result;
     }
 
@@ -265,12 +267,14 @@ public class Bigboard {
         }
 
         int partialShift = amount & WORD_SIZE_MASK;
-        long carry = 0;
-        for (int i = result.words.length - 1; i >= 0; i--) {
-            long newCarry = result.words[i] << (WORD_SIZE - partialShift);
-            result.words[i] >>>= partialShift;
-            result.words[i] |= carry;
-            carry = newCarry;
+        if (partialShift != 0) {
+            long carry = 0;
+            for (int i = result.words.length - 1; i >= wordShifts; i--) {
+                long newCarry = result.words[i] << (WORD_SIZE - partialShift);
+                result.words[i] >>>= partialShift;
+                result.words[i] |= carry;
+                carry = newCarry;
+            }
         }
 
         return result;
