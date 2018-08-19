@@ -356,6 +356,21 @@ public class Bigboard {
     }
 
     /**
+     * Returns the bit at the given position on the board, as specified by its
+     * xy-coordinates. Positions are indexed with (0,0) as the lower left
+     * corner of the board and (width - 1, height - 1) as the upper right.
+     *
+     * @param x The x-coordinate of the position on the board to get the bit of.
+     *          Must be non-negative and less than the board width.
+     * @param y The y-coordinate of the position on the board to get the bit of.
+     *          Must be non-negative and less than the board height.
+     * @return True if the bit at the position is 1, false if it is 0.
+     */
+    public boolean get(int x, int y) {
+        return get(y * this.width + x);
+    }
+
+    /**
      * Returns a String depicting the bits in their board positions. 0 bits are
      * represented by '.', 1 bits are represented by 'X'. The board is
      * constructed from the bits in Little-Endian Rank-File mapping.

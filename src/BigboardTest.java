@@ -187,6 +187,37 @@ public class BigboardTest {
     }
 
     @Test
+    public void testGet() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 3, 70, 168});
+
+        // Get 1 bits
+        assertTrue(b0.get(0));
+        assertTrue(b0.get(3));
+        assertTrue(b0.get(70));
+        assertTrue(b0.get(168));
+        assertTrue(b0.get(0, 0));
+        assertTrue(b0.get(3, 0));
+        assertTrue(b0.get(5, 5));
+        assertTrue(b0.get(12, 12));
+
+        // Get 0 bits
+        assertFalse(b0.get(1));
+        assertFalse(b0.get(2));
+        assertFalse(b0.get(4));
+        assertFalse(b0.get(69));
+        assertFalse(b0.get(71));
+        assertFalse(b0.get(167));
+        assertFalse(b0.get(1, 0));
+        assertFalse(b0.get(2, 0));
+        assertFalse(b0.get(4, 0));
+        assertFalse(b0.get(4, 5));
+        assertFalse(b0.get(6, 5));
+        assertFalse(b0.get(11, 12));
+
+
+    }
+
+    @Test
     public void testAnd() {
         Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
         Bigboard b1 = makeBB(13, 13, new int[]{0, 70, 168});
@@ -229,5 +260,30 @@ public class BigboardTest {
         testEq(new int[]{0, 1, 27, 70, 159, 168}, b1.or(b2));
         testEq(new int[]{0, 1, 27, 70, 159, 168}, b2.or(b1));
         testEq(new int[]{0, 1, 2, 3, 70, 168}, b1.or(14L));
+    }
+
+    @Test
+    public void testXor() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{0, 70, 168});
+        Bigboard b2 = makeBB(13, 13, new int[]{1, 27, 159});
+        Bigboard b3 = makeBB(13, 13, new int[]{0, 15, 70, 155});
+
+        // General case
+        testEq(new int[]{10, 15, 155, 160, 168}, b0.xor(b3));
+        testEq(new int[]{10, 15, 155, 160, 168}, b3.xor(b0));
+        testEq(new int[]{3, 10, 70, 160, 168}, b0.xor(9L));
+        // Sub/super set
+        testEq(new int[]{10, 160}, b0.xor(b1));
+        testEq(new int[]{10, 160}, b1.xor(b0));
+        testEq(new int[]{70, 160, 168}, b0.xor(1025L));
+        // Non-empty AND empty
+        testEq(new int[]{0, 70, 168}, b1.xor(new Bigboard(13, 13)));
+        testEq(new int[]{0, 70, 168}, new Bigboard(13, 13).xor(b1));
+        testEq(new int[]{0, 70, 168}, b1.xor(0L));
+        // Disjoint
+        testEq(new int[]{0, 1, 27, 70, 159, 168}, b1.xor(b2));
+        testEq(new int[]{0, 1, 27, 70, 159, 168}, b2.xor(b1));
+        testEq(new int[]{0, 1, 2, 3, 70, 168}, b1.xor(14L));
     }
 }
