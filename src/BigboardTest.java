@@ -213,8 +213,6 @@ public class BigboardTest {
         assertFalse(b0.get(4, 5));
         assertFalse(b0.get(6, 5));
         assertFalse(b0.get(11, 12));
-
-
     }
 
     @Test
@@ -285,5 +283,69 @@ public class BigboardTest {
         testEq(new int[]{0, 1, 27, 70, 159, 168}, b1.xor(b2));
         testEq(new int[]{0, 1, 27, 70, 159, 168}, b2.xor(b1));
         testEq(new int[]{0, 1, 2, 3, 70, 168}, b1.xor(14L));
+    }
+
+    @Test
+    public void testLeft() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{0, 70, 168});
+        Bigboard b2 = makeBB(13, 13, new int[]{1, 27, 159});
+        Bigboard b3 = makeBB(13, 13, new int[]{0, 15, 70, 155});
+
+        // General case
+        testEq(new int[]{10, 20, 80}, b0.left(10));
+        testEq(new int[]{13, 83}, b1.left(13));
+        testEq(new int[]{8, 34, 166}, b2.left(7));
+        testEq(new int[]{12, 27, 82, 167}, b3.left(12));
+
+        // Upper end case
+        testEq(new int[]{168}, b0.left(168));
+        testEq(new int[]{168}, b1.left(168));
+        testEq(new int[]{142, 168}, b2.left(141));
+        testEq(new int[]{143}, b2.left(142));
+        testEq(new int[]{153, 168}, b3.left(153));
+        testEq(new int[]{154}, b3.left(154));
+
+        // Shift everything off the board
+        testEq(new int[]{}, b0.left(169));
+        testEq(new int[]{}, b1.left(169));
+        testEq(new int[]{}, b2.left(169));
+        testEq(new int[]{}, b3.left(169));
+        testEq(new int[]{}, b0.left(9999));
+        testEq(new int[]{}, b1.left(9999));
+        testEq(new int[]{}, b2.left(9999));
+        testEq(new int[]{}, b3.left(9999));
+    }
+
+    @Test
+    public void testRight() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{0, 70, 168});
+        Bigboard b2 = makeBB(13, 13, new int[]{1, 27, 159});
+        Bigboard b3 = makeBB(13, 13, new int[]{0, 15, 70, 155});
+
+        // General case
+        testEq(new int[]{0, 60, 150, 158}, b0.right(10));
+        testEq(new int[]{57, 155}, b1.right(13));
+        testEq(new int[]{20, 152}, b2.right(7));
+        testEq(new int[]{3, 58, 143}, b3.right(12));
+
+        // Lower end case
+        testEq(new int[]{0}, b0.right(168));
+        testEq(new int[]{0}, b1.right(168));
+        testEq(new int[]{0, 132}, b2.right(27));
+        testEq(new int[]{131}, b2.right(28));
+        testEq(new int[]{0, 85}, b3.right(70));
+        testEq(new int[]{84}, b3.right(71));
+
+        // Shift everything off the board
+        testEq(new int[]{}, b0.right(169));
+        testEq(new int[]{}, b1.right(169));
+        testEq(new int[]{}, b2.right(169));
+        testEq(new int[]{}, b3.right(169));
+        testEq(new int[]{}, b0.right(9999));
+        testEq(new int[]{}, b1.right(9999));
+        testEq(new int[]{}, b2.right(9999));
+        testEq(new int[]{}, b3.right(9999));
     }
 }

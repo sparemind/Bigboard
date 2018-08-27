@@ -269,7 +269,7 @@ public class Bigboard {
         int partialShift = amount & WORD_SIZE_MASK;
         if (partialShift != 0) {
             long carry = 0;
-            for (int i = result.words.length - 1; i >= wordShifts; i--) {
+            for (int i = result.words.length - 1 - wordShifts; i >= 0; i--) {
                 long newCarry = result.words[i] << (WORD_SIZE - partialShift);
                 result.words[i] >>>= partialShift;
                 result.words[i] |= carry;
