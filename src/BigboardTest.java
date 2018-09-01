@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -106,6 +107,14 @@ public class BigboardTest {
         return sb.toString();
     }
 
+    /**
+     * Calculate the intersection of two lists and returns the result as an
+     * array.
+     *
+     * @param a The first list to intersect with the second.
+     * @param b The second list to intersect with the first.
+     * @return The intersection of the two given lists as a new array.
+     */
     public static int[] and(List<Integer> a, List<Integer> b) {
         List<Integer> acc = new ArrayList<>(a);
         acc.retainAll(b);
@@ -128,6 +137,17 @@ public class BigboardTest {
         return result;
     }
 
+    /**
+     * Creates a sorted list of indices for a board of given width and height.
+     *
+     * @param rand   The random number generator to use to produce the indices.
+     * @param width  The width of the board to create the indices for.
+     * @param height The height of the board to create the indices for.
+     * @return A sorted list of indices for a board of the given width and
+     * height. Index values range from 0 to the index of the highest bit being
+     * used in the board, inclusive (even if this upper bound specifies an
+     * index not on the actual board).
+     */
     private static List<Integer> randArr(Random rand, int width, int height) {
         Set<Integer> indices = new TreeSet<>();
 
@@ -149,17 +169,19 @@ public class BigboardTest {
             System.out.println("Running and(Bigboard) random test #" + i);
             int width = rand.nextInt(RAND_SIZE_MAX) + 1;
             int height = rand.nextInt(RAND_SIZE_MAX) + 1;
-            testAndRandom(rand, width, height);
+
+            testBi(rand, width, height, BigboardTest::and, Bigboard::and);
         }
     }
 
-    private void testAndRandom(Random rand, int width, int height) {
+    private void testBi(Random rand, int width, int height, BiFunction<List<Integer>,
+            List<Integer>, int[]> expectedOp, BiFunction<Bigboard, Bigboard, Bigboard> op) {
         List<Integer> aIndices = randArr(rand, width, height);
         List<Integer> bIndices = randArr(rand, width, height);
         Bigboard a = makeBB(width, height, toArr(aIndices));
         Bigboard b = makeBB(width, height, toArr(bIndices));
 
-        testEq(and(aIndices, bIndices), a.and(b));
+        testEq(expectedOp.apply(aIndices, bIndices), op.apply(a, b));
     }
 
     @Test
