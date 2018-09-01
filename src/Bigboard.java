@@ -87,7 +87,12 @@ public class Bigboard {
         this.width = width;
         this.height = height;
         int size = width * height;
-        this.partialSizeMask = (1L << (size & WORD_SIZE_MASK)) - 1;
+        if ((size & WORD_SIZE_MASK) == 0) {
+            // If all words are fully used, then no partial mask is needed.
+            this.partialSizeMask = ~0;
+        } else {
+            this.partialSizeMask = (1L << (size & WORD_SIZE_MASK)) - 1;
+        }
         this.words = new long[((size - 1) >> BITS_PER_WORD) + 1];
     }
 
