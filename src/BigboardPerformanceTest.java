@@ -1,16 +1,15 @@
 import java.util.function.BiFunction;
 
 public class BigboardPerformanceTest {
-    // Ending width/height of the boards to test
-    public static final int START_SIZE = 3;
-    // Starting width/height of the boards to test
-    public static final int END_SIZE = 13;
+    // Width/height sizes of the boards to test
+    public static final int[] SIZES = {3, 8, 13, 20, 100};
     // Number of operate iterations to do before timing (for JVM warmup)
     public static final int WARMUP_ITERATIONS = (int) 1e7;
     // Number of operate iterations to do per timing session
     public static final int ITERATIONS = (int) 1e7;
     // The ordered results table column headers
-    public static final String[] TABLE_HEADERS = {"Board Size", "AND", "OR", "XOR", "LEFT", "RIGHT"};
+    public static final String[] TABLE_HEADERS = {"Board Size", "AND", "OR", "XOR", "LEFT",
+            "RIGHT", "Average", "Avg. ops/ms"};
     // Nanoseconds per second
     private static final int NS_PER_S = (int) 1e9;
 
@@ -35,12 +34,20 @@ public class BigboardPerformanceTest {
         System.out.println();
 
         // Do tests and print results
-        for (int size = START_SIZE; size <= END_SIZE; size++) {
+        for (int size : SIZES) {
             results[0] = test(size, size, Bigboard::and);
             results[1] = test(size, size, Bigboard::or);
             results[2] = test(size, size, Bigboard::xor);
             results[3] = test(size, size, Bigboard::left);
             results[4] = test(size, size, Bigboard::right);
+
+            // Compute average
+            for (int i = 0; i < results.length - 2; i++) {
+                results[5] += results[i];
+            }
+            results[5] /= results.length - 2;
+            // Determine average number of operations per millisecond
+            results[6] = ITERATIONS / results[5] / 1000;
 
             printResults(size, results);
         }

@@ -101,7 +101,9 @@ public class Bigboard {
      * board of the same dimensions represented by a single long. Bits that
      * don't fit on the board are discarded.
      *
-     * @param other The other board that this new Bigboard will equal.
+     * @param width  The width of the board. Must be > 0.
+     * @param height The height of the board. Must be > 0.
+     * @param other  The other board that this new Bigboard will equal.
      */
     public Bigboard(int width, int height, long other) {
         this(width, height);
@@ -272,9 +274,12 @@ public class Bigboard {
         }
 
         int wordShifts = Math.min(amount >> BITS_PER_WORD, result.words.length);
-        for (int i = result.words.length - 1; i >= wordShifts; i--) {
-            result.words[i] = result.words[i - wordShifts];
-        }
+        // Unsimplified version of the arraycopy version
+        // for (int i = result.words.length - 1; i >= wordShifts; i--) {
+        //     result.words[i] = result.words[i - wordShifts];
+        // }
+        System.arraycopy(result.words, 0, result.words, wordShifts, result.words.length -
+                wordShifts);
         for (int i = 0; i < wordShifts; i++) {
             result.words[i] = 0;
         }
@@ -310,9 +315,12 @@ public class Bigboard {
         }
 
         int wordShifts = Math.min(amount >> BITS_PER_WORD, result.words.length);
-        for (int i = 0; i < result.words.length - wordShifts; i++) {
-            result.words[i] = result.words[i + wordShifts];
-        }
+        // Unsimplified version of the arraycopy version
+        // for (int i = 0; i < result.words.length - wordShifts; i++) {
+        //     result.words[i] = result.words[i + wordShifts];
+        // }
+        System.arraycopy(result.words, wordShifts, result.words, 0, result.words.length -
+                wordShifts);
         for (int i = result.words.length - 1; i >= result.words.length - wordShifts; i--) {
             result.words[i] = 0;
         }
