@@ -80,8 +80,8 @@ public class Bigboard {
     /**
      * Creates a new bitboard of given width and height.
      *
-     * @param width  The width of the board. Must be > 0.
-     * @param height The height of the board. Must be > 0.
+     * @param width  The width of the board. Must be greater than 0.
+     * @param height The height of the board. Must be greater than 0.
      */
     public Bigboard(int width, int height) {
         this.width = width;
@@ -101,8 +101,8 @@ public class Bigboard {
      * board of the same dimensions represented by a single long. Bits that
      * don't fit on the board are discarded.
      *
-     * @param width  The width of the board. Must be > 0.
-     * @param height The height of the board. Must be > 0.
+     * @param width  The width of the board. Must be greater than 0.
+     * @param height The height of the board. Must be greater than 0.
      * @param other  The other board that this new Bigboard will equal.
      */
     public Bigboard(int width, int height, long other) {
