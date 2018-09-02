@@ -34,6 +34,7 @@
  *
  * @author Jake Chiang
  * @version 1.0
+ * <p>
  */
 public class Bigboard {
     // A Bigboard consists of multiple "words" stored in an array. Each word
@@ -67,6 +68,22 @@ public class Bigboard {
      * Currently a word is a long, so this is 0b111111.
      */
     private static final int WORD_SIZE_MASK = WORD_SIZE - 1;
+
+    // @formatter:off
+    // Lookup table of the index of the LS1B within a 64-bit word.
+    private static final int[] INDEX_64 = {
+        0,  1, 48,  2, 57, 49, 28,  3,
+        61, 58, 50, 42, 38, 29, 17,  4,
+        62, 55, 59, 36, 53, 51, 43, 22,
+        45, 39, 33, 30, 24, 18, 12,  5,
+        63, 47, 56, 27, 60, 41, 37, 16,
+        54, 35, 52, 21, 44, 32, 23, 11,
+        46, 26, 40, 15, 34, 20, 31, 10,
+        25, 14, 19,  9, 13,  8,  7,  6
+    };
+    // @formatter:on
+    // Magic number used in the calculation of an LS1B's index.
+    private static final long DE_BRUIJN_64 = 0x03f79d71b4cb0a89L;
 
     // The words that represent the board
     private final long[] words;
@@ -189,7 +206,7 @@ public class Bigboard {
      * position on this board to 1.
      */
     public Bigboard set(int x, int y) {
-        return set(y * width + x);
+        return set(y * this.width + x);
     }
 
     /**
@@ -220,7 +237,7 @@ public class Bigboard {
      * position on this board to 0.
      */
     public Bigboard unset(int x, int y) {
-        return unset(y * width + x);
+        return unset(y * this.width + x);
     }
 
     /**
@@ -252,7 +269,7 @@ public class Bigboard {
      * position on this board.
      */
     public Bigboard flip(int x, int y) {
-        return flip(y * width + x);
+        return flip(y * this.width + x);
     }
 
     /**
@@ -475,6 +492,56 @@ public class Bigboard {
      */
     public boolean get(int x, int y) {
         return get(y * this.width + x);
+    }
+
+    /**
+     * Returns a board of just the least-significant bit (LSB) that's set on
+     * this board.
+     *
+     * @return The board of just the LSB of this board.
+     */
+    public Bigboard lsb() {
+        Bigboard result = new Bigboard(this.width, this.height);
+        for (int i = 0; i < this.words.length; i++) {
+            long wordLsb = this.words[i] & -this.words[i];
+            if (wordLsb != 0) {
+                result.words[i] = wordLsb;
+                return result;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the index of the least significant 1 bit of this board.
+     *
+     * @return The index of the least significant 1 bit of this board. -1 if
+     * all bits in this board are 0.
+     */
+    public int bitScanForward() {
+        for (int i = 0; i < this.words.length; i++) {
+            if (this.words[i] != 0) {
+                return bitScanForward(this.words[i]) + i * WORD_SIZE;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * bitScanForward
+     *
+     * @param bb bitboard to scan
+     * @return index (0..63) of least significant one bit
+     * @author Martin Läuter (1997)
+     * Charles E. Leiserson
+     * Harald Prokop
+     * Keith H. Randall
+     * "Using de Bruijn Sequences to Index a 1 in a Computer Word"
+     * @precondition bb != 0
+     */
+    private int bitScanForward(long bb) {
+        assert (bb != 0);
+        return INDEX_64[(int) (((bb & -bb) * DE_BRUIJN_64) >>> 58)];
     }
 
     /**
