@@ -33,7 +33,7 @@
  * </pre>
  *
  * @author Jake Chiang
- * @version 0.1
+ * @version 1.0
  */
 public class Bigboard {
     // A Bigboard consists of multiple "words" stored in an array. Each word
@@ -177,6 +177,22 @@ public class Bigboard {
     }
 
     /**
+     * Sets the bit at the given position on the board to 1. Bits are indexed
+     * according to a Little-Endian Rank-File mapping, with (0,0) as the lower
+     * left corner.
+     *
+     * @param x The x-coordinate of the position on the board to set to 1. Must be
+     *          non-negative and less than the board's width.
+     * @param y The y-coordinate of the position on the board to set to 1. Must be
+     *          non-negative and less than the board's height.
+     * @return The board that results from setting the bit at the given
+     * position on this board to 1.
+     */
+    public Bigboard set(int x, int y) {
+        return set(y * width + x);
+    }
+
+    /**
      * Sets the bit at the given index on the board to 0. Bits are indexed
      * according to a Little-Endian Rank-File mapping.
      *
@@ -189,6 +205,22 @@ public class Bigboard {
         Bigboard result = new Bigboard(this);
         result.words[index >> BITS_PER_WORD] &= ~(1L << (index & WORD_SIZE_MASK));
         return result;
+    }
+
+    /**
+     * Sets the bit at the given position on the board to 0. Bits are indexed
+     * according to a Little-Endian Rank-File mapping, with (0,0) as the lower
+     * left corner.
+     *
+     * @param x The x-coordinate of the position on the board to set to 0. Must be
+     *          non-negative and less than the board's width.
+     * @param y The y-coordinate of the position on the board to set to 0. Must be
+     *          non-negative and less than the board's height.
+     * @return The board that results from setting the bit at the given
+     * position on this board to 0.
+     */
+    public Bigboard unset(int x, int y) {
+        return unset(y * width + x);
     }
 
     /**
@@ -205,6 +237,22 @@ public class Bigboard {
         Bigboard result = new Bigboard(this);
         result.words[index >> BITS_PER_WORD] ^= 1L << (index & WORD_SIZE_MASK);
         return result;
+    }
+
+    /**
+     * Flips the bit at the given position on the board (i.e. changes it to 0 if
+     * it is 1 and changes it to 1 if it is 0). Bits are indexed according to a
+     * Little-Endian Rank-File mapping, with (0,0) as the lower left corner.
+     *
+     * @param x The x-coordinate of the position on the board to flip. Must be
+     *          non-negative and less than the board's width.
+     * @param y The y-coordinate of the position on the board to flip. Must be
+     *          non-negative and less than the board's height.
+     * @return The board that results from flipping the bit at the given
+     * position on this board.
+     */
+    public Bigboard flip(int x, int y) {
+        return flip(y * width + x);
     }
 
     /**
