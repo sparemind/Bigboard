@@ -34,7 +34,6 @@
  *
  * @author Jake Chiang
  * @version 1.0
- * <p>
  */
 public class Bigboard {
     // A Bigboard consists of multiple "words" stored in an array. Each word
@@ -81,6 +80,25 @@ public class Bigboard {
         46, 26, 40, 15, 34, 20, 31, 10,
         25, 14, 19,  9, 13,  8,  7,  6
     };
+    // Lookup table of the number of 1 bits in a byte.
+    private static final int[] POP_COUNT_OF_BYTE_256 = {
+        0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+    };
     // @formatter:on
     // Magic number used in the calculation of an LS1B's index.
     private static final long DE_BRUIJN_64 = 0x03f79d71b4cb0a89L;
@@ -93,6 +111,19 @@ public class Bigboard {
     private final int height;
     // Bitmask of the used bits in the final word
     private final long partialSizeMask;
+
+    public static class BoardPair {
+        public Bigboard first;
+        public Bigboard second;
+
+        public BoardPair() {
+        }
+
+        public BoardPair(Bigboard first, Bigboard second) {
+            this.first = first;
+            this.second = second;
+        }
+    }
 
     /**
      * Creates a new bitboard of given width and height.
@@ -495,10 +526,10 @@ public class Bigboard {
     }
 
     /**
-     * Returns a board of just the least-significant bit (LSB) that's set on
-     * this board.
+     * Returns a board of just the least-significant 1 bit (LS1B/LSB) of this
+     * board.
      *
-     * @return The board of just the LSB of this board.
+     * @return The board of just the LS1B of this board.
      */
     public Bigboard lsb() {
         Bigboard result = new Bigboard(this.width, this.height);
@@ -510,6 +541,83 @@ public class Bigboard {
             }
         }
         return result;
+    }
+
+    /**
+     * Returns a copy of this board without its least-significant 1 bit
+     * (LS1B/LSB)
+     *
+     * @return The board that results from setting the LS1B of this board to 0.
+     */
+    public Bigboard resetLsb() {
+        Bigboard result = new Bigboard(this);
+
+        for (int i = 0; i < result.words.length; i++) {
+            long wordLsb = result.words[i] & -result.words[i];
+            if (wordLsb != 0) {
+                result.words[i] &= ~wordLsb;
+                return result;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns two boards respectively containing just the least-significant 1
+     * bit (LS1B/LSB) of this board and a copy of this board but without the
+     * LS1B.
+     * <p>
+     * This is equivalent to doing both {@link #lsb()} and {@link #resetLsb()}.
+     *
+     * @return A pair of boards where the first is a board of just the LS1B of
+     * this board and the second is a copy of this board but without the LS1B.
+     */
+    public BoardPair popLsb() {
+        BoardPair result = new BoardPair();
+        result.first = new Bigboard(this.width, this.height);
+        result.second = new Bigboard(this);
+
+        for (int i = 0; i < this.words.length; i++) {
+            long wordLsb = this.words[i] & -this.words[i];
+            if (wordLsb != 0) {
+                result.first.words[i] = wordLsb;
+                result.second.words[i] &= ~wordLsb;
+                return result;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the population count (number of 1 bits) in this board.
+     *
+     * @return The number of 1 bits in this board.
+     */
+    public int popCount() {
+        int sum = 0;
+        for (long word : this.words) {
+            sum += popCount(word);
+        }
+        return sum;
+    }
+
+    /**
+     * Returns the population count (number of 1 bits) in a given long.
+     *
+     * @param x The long to count the number of 1 bits of.
+     * @return The number of 1 bits in the given long.
+     */
+    private int popCount(long x) {
+        // @formatter:off
+        return POP_COUNT_OF_BYTE_256[ (int) (x          & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) ((x >>>  8) & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) ((x >>> 16) & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) ((x >>> 24) & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) ((x >>> 32) & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) ((x >>> 40) & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) ((x >>> 48) & 0xff)] +
+                POP_COUNT_OF_BYTE_256[(int) (x  >>> 56)];
+        // @formatter:on
     }
 
     /**
