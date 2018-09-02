@@ -19,7 +19,7 @@ public class BigboardTest {
     /**
      * The number of random tests to run per method.
      */
-    private static final int RAND_TESTS = 128;
+    private static final int RAND_TESTS = 256;
     /**
      * Maximum dimension a board can be in a random test (inclusive).
      */
@@ -514,5 +514,84 @@ public class BigboardTest {
         testEq(new int[]{}, b1.right(9999));
         testEq(new int[]{}, b2.right(9999));
         testEq(new int[]{}, b3.right(9999));
+    }
+
+    @Test
+    public void testNot() {
+        Bigboard b0 = makeBB(3, 3, new int[]{0, 3, 5, 8});
+        Bigboard b1 = makeBB(3, 3, new int[]{});
+        Bigboard b2 = makeBB(1, 1, new int[]{});
+
+        testEq(new int[]{1, 2, 4, 6, 7}, b0.not());
+        testEq(new int[]{0, 3, 5, 8}, b0.not().not());
+
+        testEq(new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8}, b1.not());
+        testEq(new int[]{}, b1.not().not());
+
+        testEq(new int[]{0}, b2.not());
+        testEq(new int[]{}, b2.not().not());
+    }
+
+    @Test
+    public void testSet() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{10, 70, 160});
+
+        // Set an already set bit
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.set(0));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.set(10));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.set(70));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.set(160));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.set(168));
+
+        // Set an unset bit
+        testEq(new int[]{0, 10, 70, 160}, b1.set(0));
+        testEq(new int[]{10, 70, 160, 168}, b1.set(168));
+        testEq(new int[]{1, 10, 70, 160}, b1.set(1));
+        testEq(new int[]{10, 70, 127, 160}, b1.set(127));
+        testEq(new int[]{10, 70, 128, 160}, b1.set(128));
+        testEq(new int[]{10, 64, 70, 160}, b1.set(64));
+    }
+
+    @Test
+    public void testUnset() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+
+        // Unset an already unset bit
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(1));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(9));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(11));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(64));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(127));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(128));
+        testEq(new int[]{0, 10, 70, 160, 168}, b0.unset(167));
+
+        // Unset a set bit
+        testEq(new int[]{10, 70, 160, 168}, b0.unset(0));
+        testEq(new int[]{0, 70, 160, 168}, b0.unset(10));
+        testEq(new int[]{0, 10, 160, 168}, b0.unset(70));
+        testEq(new int[]{0, 10, 70, 168}, b0.unset(160));
+        testEq(new int[]{0, 10, 70, 160}, b0.unset(168));
+    }
+
+    @Test
+    public void testFlip() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 10, 70, 160, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{10, 70, 160});
+
+        // Flip a set bit
+        testEq(new int[]{10, 70, 160, 168}, b0.flip(0));
+        testEq(new int[]{0, 70, 160, 168}, b0.flip(10));
+        testEq(new int[]{0, 10, 160, 168}, b0.flip(70));
+        testEq(new int[]{0, 10, 70, 168}, b0.flip(160));
+        testEq(new int[]{0, 10, 70, 160}, b0.flip(168));
+
+        // Flip an unset bit
+        testEq(new int[]{0, 10, 70, 160}, b1.flip(0));
+        testEq(new int[]{10, 70, 160, 168}, b1.flip(168));
+        testEq(new int[]{1, 10, 70, 160}, b1.flip(1));
+        testEq(new int[]{10, 70, 127, 160}, b1.flip(127));
+        testEq(new int[]{10, 70, 128, 160}, b1.flip(128));
+        testEq(new int[]{10, 64, 70, 160}, b1.flip(64));
     }
 }

@@ -160,6 +160,52 @@ public class Bigboard {
     }
 
     /**
+     * Sets the bit at the given index on the board to 1. Bits are indexed
+     * according to a Little-Endian Rank-File mapping.
+     *
+     * @param index The index of the position on the board to set to 1. Must be
+     *              non-negative and less than board width * height.
+     * @return The board that results from setting the bit at the given index
+     * on this board to 1.
+     */
+    public Bigboard set(int index) {
+        Bigboard result = new Bigboard(this);
+        result.words[index >> BITS_PER_WORD] |= 1L << (index & WORD_SIZE_MASK);
+        return result;
+    }
+
+    /**
+     * Sets the bit at the given index on the board to 0. Bits are indexed
+     * according to a Little-Endian Rank-File mapping.
+     *
+     * @param index The index of the position on the board to set to 0. Must be
+     *              non-negative and less than board width * height.
+     * @return The board that results from setting the bit at the given index
+     * on this board to 0.
+     */
+    public Bigboard unset(int index) {
+        Bigboard result = new Bigboard(this);
+        result.words[index >> BITS_PER_WORD] &= ~(1L << (index & WORD_SIZE_MASK));
+        return result;
+    }
+
+    /**
+     * Flips the bit at the given index on the board (i.e. changes it to 0 if it
+     * is 1 and changes it to 1 if it is 0). Bits are indexed according to a
+     * Little-Endian Rank-File mapping.
+     *
+     * @param index The index of the position on the board to flip. Must be
+     *              non-negative and less than board width * height.
+     * @return The board that results from flipping the bit at the given index
+     * on this board.
+     */
+    public Bigboard flip(int index) {
+        Bigboard result = new Bigboard(this);
+        result.words[index >> BITS_PER_WORD] ^= 1L << (index & WORD_SIZE_MASK);
+        return result;
+    }
+
+    /**
      * Computes bitwise AND with another board and returns the result.
      *
      * @param other The board to compute bitwise AND with.
