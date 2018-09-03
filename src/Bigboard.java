@@ -33,7 +33,7 @@
  * </pre>
  *
  * @author Jake Chiang
- * @version 1.1.1
+ * @version 1.1.2
  */
 public class Bigboard {
     // A Bigboard consists of multiple "words" stored in an array. Each word
@@ -103,6 +103,9 @@ public class Bigboard {
     // Magic number used in the calculation of an LS1B's index.
     private static final long DE_BRUIJN_64 = 0x03f79d71b4cb0a89L;
 
+    // Whether to
+    private static boolean flipToString = false;
+
     // The words that represent the board
     private final long[] words;
     // Board width
@@ -158,6 +161,22 @@ public class Bigboard {
         this.partialSizeMask = other.partialSizeMask;
         this.words = new long[other.words.length];
         System.arraycopy(other.words, 0, this.words, 0, this.words.length);
+    }
+
+    /**
+     * Set whether to flip the board representation of {@link #toString()}
+     * vertically. If this is true, then {@link #toString()} will be equivalent
+     * to {@link #toStringFlipped()}.
+     *
+     * @param flip Whether to make {@link #toString()} act like
+     *             {@link #toStringFlipped()} and flip its representation of the
+     *             board vertically.
+     * @see #toString()
+     * @see #toStringFlipped()
+     * @since v1.1.2
+     */
+    public static void flipToString(boolean flip) {
+        flipToString = flip;
     }
 
     /**
@@ -403,8 +422,7 @@ public class Bigboard {
         // for (int i = result.words.length - 1; i >= wordShifts; i--) {
         //     result.words[i] = result.words[i - wordShifts];
         // }
-        System.arraycopy(result.words, 0, result.words, wordShifts, result.words.length -
-                wordShifts);
+        System.arraycopy(result.words, 0, result.words, wordShifts, result.words.length - wordShifts);
         for (int i = 0; i < wordShifts; i++) {
             result.words[i] = 0;
         }
@@ -444,8 +462,7 @@ public class Bigboard {
         // for (int i = 0; i < result.words.length - wordShifts; i++) {
         //     result.words[i] = result.words[i + wordShifts];
         // }
-        System.arraycopy(result.words, wordShifts, result.words, 0, result.words.length -
-                wordShifts);
+        System.arraycopy(result.words, wordShifts, result.words, 0, result.words.length - wordShifts);
         for (int i = result.words.length - 1; i >= result.words.length - wordShifts; i--) {
             result.words[i] = 0;
         }
@@ -762,24 +779,62 @@ public class Bigboard {
      *
      * @return A representation of the 2D board showing 0 bits as '.' and 1 bits
      * as 'X'.
+     * @see #toStringFlipped()
      */
     @Override
     public String toString() {
+        if (flipToString) {
+            return toStringFlipped();
+        }
+
         StringBuilder sb = new StringBuilder();
 
         for (int y = this.height - 1; y >= 0; y--) {
-            for (int x = 0; x < this.width; x++) {
-                if (get(y * this.width + x)) {
-                    sb.append('X');
-                } else {
-                    sb.append('.');
-                }
-                sb.append(' ');
-            }
-            sb.append('\n');
+            rowToString(sb, y);
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Returns a String depicting the bits in their board positions. 0 bits are
+     * represented by '.', 1 bits are represented by 'X'. The board is
+     * constructed from the bits in Little-Endian Rank-File mapping, but flipped
+     * vertically so that the lowest bit appears in the top left corner. This is
+     * equivalent to the default representation given by {@link #toString()},
+     * but flipped vertically.
+     * <p>
+     * For example, a 4x4 board for the binary value of 25 would be:
+     * X . . X
+     * X . . .
+     * . . . .
+     * . . . .
+     *
+     * @return A representation of the 2D board showing 0 bits as '.' and 1 bits
+     * as 'X'.
+     * @see #toString()
+     * @since v1.1.2
+     */
+    public String toStringFlipped() {
+        StringBuilder sb = new StringBuilder();
+
+        for (int y = 0; y < this.height; y++) {
+            rowToString(sb, y);
+        }
+
+        return sb.toString();
+    }
+
+    private void rowToString(StringBuilder sb, int y) {
+        for (int x = 0; x < this.width; x++) {
+            if (get(y * this.width + x)) {
+                sb.append('X');
+            } else {
+                sb.append('.');
+            }
+            sb.append(' ');
+        }
+        sb.append('\n');
     }
 
     /**

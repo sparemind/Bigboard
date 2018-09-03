@@ -30,6 +30,10 @@ public class BigboardTest {
      * be in [0, 1.0].
      */
     private static final double RAND_BITS_MAX_PERCENT = 1.0;
+    /**
+     * The seed to use when generating random tests.
+     */
+    private static final int SEED = 0;
 
     /**
      * Makes a board of a given width and height with 1 bits at specified
@@ -348,9 +352,8 @@ public class BigboardTest {
      * @param func         The Bigboard operation to test. Accepts two Bigboards
      *                     and returns a third.
      */
-    private void randTestBBBFunc(BiFunction<List<Integer>, List<Integer>, int[]> expectedFunc,
-                                 BiFunction<Bigboard, Bigboard, Bigboard> func) {
-        Random rand = new Random(0);
+    private void randTestBBBFunc(BiFunction<List<Integer>, List<Integer>, int[]> expectedFunc, BiFunction<Bigboard, Bigboard, Bigboard> func) {
+        Random rand = new Random(SEED);
 
         for (int i = 0; i < RAND_TESTS; i++) {
             System.out.println("\tRandom test #" + i);
@@ -385,9 +388,8 @@ public class BigboardTest {
      * @param func         The Bigboard operation to test. Accepts a Bigboard
      *                     and an integer and returns a new Bigboard.
      */
-    private void randTestBIBFunc(BiFunction<List<Integer>, Integer, int[]> expectedFunc,
-                                 BiFunction<Bigboard, Integer, Bigboard> func) {
-        Random rand = new Random(0);
+    private void randTestBIBFunc(BiFunction<List<Integer>, Integer, int[]> expectedFunc, BiFunction<Bigboard, Integer, Bigboard> func) {
+        Random rand = new Random(SEED);
 
         for (int i = 0; i < RAND_TESTS; i++) {
             System.out.println("\tRandom test #" + i);
@@ -421,9 +423,8 @@ public class BigboardTest {
      * @param func         The Bigboard operation to test. Accepts a Bigboard
      *                     and returns a new Bigboard.
      */
-    private void randTestBBFunc(Function<List<Integer>, int[]> expectedFunc, Function<Bigboard,
-            Bigboard> func) {
-        Random rand = new Random(0);
+    private void randTestBBFunc(Function<List<Integer>, int[]> expectedFunc, Function<Bigboard, Bigboard> func) {
+        Random rand = new Random(SEED);
 
         for (int i = 0; i < RAND_TESTS; i++) {
             System.out.println("\tRandom test #" + i);
@@ -454,9 +455,8 @@ public class BigboardTest {
      * @param func         The Bigboard operation to test. Accepts a Bigboard
      *                     and returns an integer.
      */
-    private void randTestBIFunc(Function<List<Integer>, Integer> expectedFunc, Function<Bigboard,
-            Integer> func) {
-        Random rand = new Random(0);
+    private void randTestBIFunc(Function<List<Integer>, Integer> expectedFunc, Function<Bigboard, Integer> func) {
+        Random rand = new Random(SEED);
 
         for (int i = 0; i < RAND_TESTS; i++) {
             System.out.println("\tRandom test #" + i);
