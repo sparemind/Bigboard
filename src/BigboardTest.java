@@ -318,6 +318,18 @@ public class BigboardTest {
         randTestBIFunc(List::size, Bigboard::popCount);
     }
 
+    @Test
+    public void randTestShiftLeft() {
+        System.out.println("Testing shiftLeft():");
+        randTestBBFunc(integers -> left(integers, 1), Bigboard::shiftLeft);
+    }
+
+    @Test
+    public void randTestShiftRight() {
+        System.out.println("Testing shiftRight():");
+        randTestBBFunc(integers -> right(integers, 1), Bigboard::shiftRight);
+    }
+
     /**
      * Tests a binary Bigboard function that accepts a Bigboard, another
      * Bigboard, and returns a Bigboard (function signature abbreviated BBB) for

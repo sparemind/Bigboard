@@ -33,7 +33,7 @@
  * </pre>
  *
  * @author Jake Chiang
- * @version 1.1
+ * @version 1.1.1
  */
 public class Bigboard {
     // A Bigboard consists of multiple "words" stored in an array. Each word
@@ -388,7 +388,7 @@ public class Bigboard {
      * result.
      *
      * @param amount The number of bits to left shift this board. Must be
-     *               positive.
+     *               non-negative
      * @return The board that results from bitwise left shifting this board by
      * the given amount.
      */
@@ -429,7 +429,7 @@ public class Bigboard {
      * returns the result.
      *
      * @param amount The number of bits to left shift this board. Must be
-     *               positive.
+     *               non-negative.
      * @return The board that results from bitwise logical right shifting this
      * board by the given amount.
      */
@@ -461,6 +461,54 @@ public class Bigboard {
             }
         }
 
+        return result;
+    }
+
+    /**
+     * Computes a bitwise left shift by 1 bit and returns the result. This is
+     * equivalent to {@code left(1)}, but more efficient.
+     *
+     * @return The board that results from bitwise left shifting this board by
+     * 1.
+     * @see #left(int)
+     * @since v1.1.1
+     */
+    public Bigboard shiftLeft() {
+        Bigboard result = new Bigboard(this);
+
+        long carry = 0;
+        for (int i = 0; i < result.words.length; i++) {
+            long msb = result.words[i] >>> (WORD_SIZE - 1);
+            result.words[i] <<= 1;
+            result.words[i] |= carry;
+            carry = msb;
+        }
+
+        zeroUnusedBits(result);
+        return result;
+    }
+
+    /**
+     * Computes a bitwise right shift by 1 bit and returns the result. This is
+     * equivalent to {@code right(1)}, but more efficient.
+     *
+     * @return The board that results from bitwise right shifting this board by
+     * 1.
+     * @see #right(int)
+     * @since v1.1.1
+     */
+    public Bigboard shiftRight() {
+        Bigboard result = new Bigboard(this);
+
+        long carry = 0;
+        for (int i = result.words.length - 1; i >= 0; i--) {
+            long lsb = result.words[i] << (WORD_SIZE - 1);
+            result.words[i] >>>= 1;
+            result.words[i] |= carry;
+            carry = lsb;
+        }
+
+        zeroUnusedBits(result);
         return result;
     }
 
