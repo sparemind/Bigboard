@@ -24,7 +24,7 @@ public class BigboardPerformanceTest {
         // Print table column headers
         StringBuilder sb = new StringBuilder();
         for (String header : TABLE_HEADERS) {
-            sb.append(String.format("%-15s", header));
+            sb.append(String.format("%-13s", header));
         }
         System.out.println(sb.toString());
         // Print header/data dividing line
@@ -64,11 +64,11 @@ public class BigboardPerformanceTest {
     private static void printResults(int size, double[] results) {
         StringBuilder sb = new StringBuilder();
         for (double time : results) {
-            sb.append(String.format("%-15.5f", time));
+            sb.append(String.format("%-13.5f", time));
         }
 
         String boardSize = String.format("%dx%d", size, size);
-        System.out.printf("%-15s%s\n", boardSize, sb.toString());
+        System.out.printf("%-13s%s\n", boardSize, sb.toString());
     }
 
     /**

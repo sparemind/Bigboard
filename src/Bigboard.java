@@ -33,7 +33,7 @@
  * </pre>
  *
  * @author Jake Chiang
- * @version 1.0
+ * @version 1.1
  */
 public class Bigboard {
     // A Bigboard consists of multiple "words" stored in an array. Each word
@@ -112,19 +112,6 @@ public class Bigboard {
     // Bitmask of the used bits in the final word
     private final long partialSizeMask;
 
-    public static class BoardPair {
-        public Bigboard first;
-        public Bigboard second;
-
-        public BoardPair() {
-        }
-
-        public BoardPair(Bigboard first, Bigboard second) {
-            this.first = first;
-            this.second = second;
-        }
-    }
-
     /**
      * Creates a new bitboard of given width and height.
      *
@@ -180,6 +167,48 @@ public class Bigboard {
      */
     private static void zeroUnusedBits(Bigboard board) {
         board.words[board.words.length - 1] &= board.partialSizeMask;
+    }
+
+    /**
+     * Creates a mask of a file for a board of given dimensions.
+     *
+     * @param width  The width of the board to make a mask for.
+     * @param height The height of the board to make a mask for.
+     * @param file   The index of the file to make a mask of. Must specify a
+     *               valid file on this board. Files are indexed with the
+     *               left-most file as file 0.
+     * @return A board of the given dimensions where all bits are 0 except for
+     * the bits in the specified file, which are 1s.
+     */
+    public static Bigboard fileMask(int width, int height, int file) {
+        Bigboard result = new Bigboard(width, height);
+        int size = width * height;
+        for (int i = 0; i < size; i += width) {
+            int index = i + file;
+            result.words[index >> BITS_PER_WORD] |= 1L << (index & WORD_SIZE_MASK);
+        }
+        return result;
+    }
+
+    /**
+     * Creates a mask of a rank for a board of given dimensions.
+     *
+     * @param width  The width of the board to make a mask for.
+     * @param height The height of the board to make a mask for.
+     * @param rank   The index of the rank to make a mask of. Must specify a
+     *               valid rank on this board. Ranks are indexed with the
+     *               lower-most rank as rank 0.
+     * @return A board of the given dimensions where all bits are 0 except for
+     * the bits in the specified rank, which are 1s.
+     */
+    public static Bigboard rankMask(int width, int height, int rank) {
+        Bigboard result = new Bigboard(width, height);
+        int rankStart = rank * height;
+        int rankEnd = rankStart + width;
+        for (int i = rankStart; i < rankEnd; i++) {
+            result.words[i >> BITS_PER_WORD] |= 1L << (i & WORD_SIZE_MASK);
+        }
+        return result;
     }
 
     /**
@@ -530,6 +559,7 @@ public class Bigboard {
      * board.
      *
      * @return The board of just the LS1B of this board.
+     * @since v1.1
      */
     public Bigboard lsb() {
         Bigboard result = new Bigboard(this.width, this.height);
@@ -548,6 +578,7 @@ public class Bigboard {
      * (LS1B/LSB)
      *
      * @return The board that results from setting the LS1B of this board to 0.
+     * @since v1.1
      */
     public Bigboard resetLsb() {
         Bigboard result = new Bigboard(this);
@@ -571,9 +602,10 @@ public class Bigboard {
      *
      * @return A pair of boards where the first is a board of just the LS1B of
      * this board and the second is a copy of this board but without the LS1B.
+     * @since v1.1
      */
-    public BoardPair popLsb() {
-        BoardPair result = new BoardPair();
+    public Pair popLsb() {
+        Pair result = new Pair();
         result.first = new Bigboard(this.width, this.height);
         result.second = new Bigboard(this);
 
@@ -592,6 +624,7 @@ public class Bigboard {
      * Returns the population count (number of 1 bits) in this board.
      *
      * @return The number of 1 bits in this board.
+     * @since v1.1
      */
     public int popCount() {
         int sum = 0;
@@ -625,6 +658,7 @@ public class Bigboard {
      *
      * @return The index of the least significant 1 bit of this board. -1 if
      * all bits in this board are 0.
+     * @since v1.1
      */
     public int bitScanForward() {
         for (int i = 0; i < this.words.length; i++) {
@@ -650,6 +684,21 @@ public class Bigboard {
     private int bitScanForward(long bb) {
         assert (bb != 0);
         return INDEX_64[(int) (((bb & -bb) * DE_BRUIJN_64) >>> 58)];
+    }
+
+    /**
+     * Returns whether this board is empty (i.e. has no 1 bits).
+     *
+     * @return True if this board has no 1 bits, false otherwise.
+     * @since v1.1
+     */
+    public boolean empty() {
+        for (long word : this.words) {
+            if (word != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -728,5 +777,21 @@ public class Bigboard {
             }
         }
         return true;
+    }
+
+    /**
+     * A pair of boards.
+     */
+    public static class Pair {
+        public Bigboard first;
+        public Bigboard second;
+
+        public Pair() {
+        }
+
+        public Pair(Bigboard first, Bigboard second) {
+            this.first = first;
+            this.second = second;
+        }
     }
 }

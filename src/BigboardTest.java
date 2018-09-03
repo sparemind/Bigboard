@@ -816,4 +816,62 @@ public class BigboardTest {
         assertEquals(0, new Bigboard(20, 20).popCount());
         assertEquals(0, new Bigboard(12, 16).popCount());
     }
+
+    @Test
+    public void testFileMask() {
+        for (int size = 1; size <= 13; size++) {
+            int indices[] = new int[size];
+            for (int i = 0; i < indices.length; i++) {
+                indices[i] = i * size;
+            }
+
+            for (int i = 0; i < indices.length; i++) {
+                testEq(indices, Bigboard.fileMask(size, size, i));
+
+                // Shift indices for the next file
+                for (int j = 0; j < indices.length; j++) {
+                    indices[j]++;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testRankMask() {
+        for (int size = 1; size <= 13; size++) {
+            int indices[] = new int[size];
+            for (int i = 0; i < indices.length; i++) {
+                indices[i] = i;
+            }
+
+            for (int i = 0; i < indices.length; i++) {
+                testEq(indices, Bigboard.rankMask(size, size, i));
+
+                // Shift indices for the next file
+                for (int j = 0; j < indices.length; j++) {
+                    indices[j] += size;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testEmpty() {
+        // Basic tests for many board dimensions
+        for (int x = 1; x <= 13; x++) {
+            for (int y = 1; y <= 13; y++) {
+                // Empty board
+                assertTrue(new Bigboard(x, y).empty());
+
+                // Non-empty board
+                assertFalse(new Bigboard(x, y, 1).empty());
+            }
+        }
+
+        assertFalse(makeBB(13, 13, new int[]{0}).empty());
+        assertFalse(makeBB(13, 13, new int[]{1}).empty());
+        assertFalse(makeBB(13, 13, new int[]{168}).empty());
+        assertFalse(makeBB(13, 13, new int[]{127}).empty());
+        assertFalse(makeBB(13, 13, new int[]{128}).empty());
+    }
 }
