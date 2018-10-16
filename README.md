@@ -17,7 +17,7 @@ leaving the original unchanged.
 
 ## Benchmarks ##
 
-Benchmarks can be obtained by running [BigboardPerformanceTest.main](src/BigboardPerformanceTest).
+Benchmarks can be obtained by running [BigboardPerformanceTest.main](src/BigboardPerformanceTest.java).
 
 * CPU: 2.7 GHz Intel Core i5
 * Results are in milliseconds
