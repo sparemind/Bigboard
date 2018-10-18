@@ -20,7 +20,7 @@ leaving the original unchanged.
 Benchmarks can be obtained by running [BigboardPerformanceTest.main](src/BigboardPerformanceTest.java).
 
 * CPU: 2.7 GHz Intel Core i5
-* Results are in milliseconds
+* Results are in nanoseconds
 
 | Board Size | AND     | OR      | XOR     | LEFT SHIFT | RIGHT SHIFT | Average | Avg. ops/ms  |
 | ---------- | ------- | ------- | ------- | ---------- | ----------- | ------- | ------------ |
