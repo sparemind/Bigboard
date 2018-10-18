@@ -1,4 +1,4 @@
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,8 +9,9 @@ import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class BigboardTest {
     /**
@@ -72,14 +73,14 @@ public class BigboardTest {
         for (int j = 0; j < realSize; j++) {
             if (j >= actual.size()) {
                 // Assert that all unused bits are 0
-                assertFalse(actual.get(j), makeError(0, j, actual));
+                assertFalse(makeError(0, j, actual), actual.get(j));
             } else if (i < expectedIndices.length && expectedIndices[i] == j) {
                 // Assert that 1 bits appear where they are expected
-                assertTrue(actual.get(j), makeError(1, j, actual));
+                assertTrue(makeError(1, j, actual), actual.get(j));
                 i++;
             } else {
                 // Assert that 0 bits appear where they are expected
-                assertFalse(actual.get(j), makeError(0, j, actual));
+                assertFalse(makeError(0, j, actual), actual.get(j));
             }
         }
     }
