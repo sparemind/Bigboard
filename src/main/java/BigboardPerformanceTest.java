@@ -4,14 +4,15 @@ public class BigboardPerformanceTest {
     // Width/height sizes of the boards to test
     public static final int[] SIZES = {3, 8, 13, 20, 100};
     // Number of operate iterations to do before timing (for JVM warmup)
-    public static final int WARMUP_ITERATIONS = (int) 1e7;
+    public static final int WARMUP_ITERATIONS = (int) 1e8;
     // Number of operate iterations to do per timing session
     public static final int ITERATIONS = (int) 1e7;
     // The ordered results table column headers
-    public static final String[] TABLE_HEADERS = {"Board Size", "AND", "OR", "XOR", "LEFT",
-            "RIGHT", "Average", "Avg. ops/ms"};
+    public static final String[] TABLE_HEADERS = {"Board Size", "AND", "OR", "XOR", "LEFT", "RIGHT", "Average", "Avg. ops/ms"};
     // Nanoseconds per second
     private static final int NS_PER_S = (int) 1e9;
+    // Milliseconds per second
+    private static final int MS_PER_S = (int) 1e3;
 
     public static void main(String[] args) {
         double[] results = new double[TABLE_HEADERS.length - 1];
@@ -46,8 +47,14 @@ public class BigboardPerformanceTest {
                 results[5] += results[i];
             }
             results[5] /= results.length - 2;
-            // Determine average number of operations per millisecond
-            results[6] = ITERATIONS / results[5] / 1000;
+
+            // Convert results to milliseconds per 1 operation
+            for (int i = 0; i < results.length - 1; i++) {
+                results[i] = (results[i] * MS_PER_S) / ITERATIONS;
+            }
+
+            // Determine average number of operations per 1 millisecond
+            results[6] = 1 / results[5];
 
             printResults(size, results);
         }
@@ -64,7 +71,7 @@ public class BigboardPerformanceTest {
     private static void printResults(int size, double[] results) {
         StringBuilder sb = new StringBuilder();
         for (double time : results) {
-            sb.append(String.format("%-13.5f", time));
+            sb.append(String.format("%-13.6f", time));
         }
 
         String boardSize = String.format("%dx%d", size, size);
