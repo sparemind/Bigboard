@@ -1,4 +1,6 @@
 # Bigboard #
+![Travis CI Status](https://travis-ci.org/veylence/Bigboard.svg?branch=master)
+
 A bitboard class generalized to work for boards both larger and smaller
 than the traditional 8x8.
 
@@ -17,7 +19,7 @@ leaving the original unchanged.
 
 ## Benchmarks ##
 
-Benchmarks can be obtained by running [BigboardPerformanceTest.main](src/BigboardPerformanceTest.java).
+Benchmarks can be obtained by running [BigboardPerformanceTest.main](src/main/java/BigboardPerformanceTest.java).
 
 * CPU: 2.7 GHz Intel Core i5
 * Results are in millisecond per operation, unless otherwise specified
