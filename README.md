@@ -1,5 +1,5 @@
 # Bigboard #
-![Travis CI Status](https://travis-ci.org/veylence/Bigboard.svg?branch=master)
+[![Travis CI Build Status](https://travis-ci.org/veylence/Bigboard.svg?branch=master)](https://travis-ci.org/veylence/Bigboard)
 
 A bitboard class generalized to work for boards both larger and smaller
 than the traditional 8x8.
