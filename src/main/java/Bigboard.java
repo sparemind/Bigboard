@@ -1,3 +1,7 @@
+import java.awt.Point;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * MIT License
  * <p>
@@ -150,6 +154,39 @@ public class Bigboard {
     }
 
     /**
+     * Constructs a new Bigboard of given width and height and populates it
+     * according to the array of words given to represent it.
+     *
+     * @param width  The width of the board. Must be greater than 0.
+     * @param height The height of the board. Must be greater than 0.
+     * @param words  The array of words that will represent this board. Words
+     *               should be in Little-Endian Rank-File mapping.
+     */
+    public Bigboard(int width, int height, long[] words) {
+        this(width, height);
+
+        System.arraycopy(words, 0, this.words, 0, this.words.length);
+    }
+
+    /**
+     * Constructs a new Bigboard of given width and height, with particular bits
+     * set.
+     *
+     * @param width  The width of the board. Must be greater than 0.
+     * @param height The height of the board. Must be greater than 0.
+     * @param bits   The xy-coordinates of the bits on this board to be set to 1.
+     *               All points must specify a valid location on this board.
+     */
+    public Bigboard(int width, int height, List<Point> bits) {
+        this(width, height);
+
+        for (Point p : bits) {
+            int index = toIndex(p.x, p.y);
+            this.words[index >> BITS_PER_WORD] |= 1L << (index & WORD_SIZE_MASK);
+        }
+    }
+
+    /**
      * Constructs a new Bigboard equal to another.
      *
      * @param other The Bigboard which this new Bigboard will equal. Must not be
@@ -228,6 +265,41 @@ public class Bigboard {
             result.words[i >> BITS_PER_WORD] |= 1L << (i & WORD_SIZE_MASK);
         }
         return result;
+    }
+
+    /**
+     * Converts a position index to the corresponding xy-coordinates of the same
+     * position on this board. Bits are indexed according to a Little-Endian
+     * Rank-File mapping, with the lowest position as the lower left corner.
+     *
+     * @param index The index to convert to an xy-coordinate.
+     * @return The corresponding xy-coordinate of the given index.
+     */
+    public Point toCoord(int index) {
+        return new Point(index % this.width, index / this.width);
+    }
+
+    /**
+     * Converts an xy-coordinate to the corresponding index of the same position
+     * on this board. Bits are indexed according to a Little-Endian Rank-File
+     * mapping, with (0,0) as the lower left corner.
+     *
+     * @param x The x-coordinate of the position to convert.
+     * @param y The y-coordinate of the position to convert.
+     * @return The corresponding index of the given xy position.
+     */
+    public int toIndex(int x, int y) {
+        return y * this.width + x;
+    }
+
+    /**
+     * Returns an array of words that represent this board.
+     *
+     * @return An array of the words that represent this board. Words are in
+     * Little-Endian Rank-File mapping.
+     */
+    public long[] getWords() {
+        return Arrays.copyOf(this.words, this.words.length);
     }
 
     /**

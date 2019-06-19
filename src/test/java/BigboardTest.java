@@ -1,6 +1,8 @@
 import org.junit.Test;
 
+import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -10,8 +12,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class BigboardTest {
     /**
@@ -121,7 +122,7 @@ public class BigboardTest {
      * @param b The second list to intersect with the first.
      * @return The intersection of the two given lists as a new array.
      */
-    public static int[] and(List<Integer> a, List<Integer> b) {
+    private static int[] and(List<Integer> a, List<Integer> b) {
         List<Integer> acc = new ArrayList<>(a);
         acc.retainAll(b);
         return toArr(acc);
@@ -134,7 +135,7 @@ public class BigboardTest {
      * @param b The second list to union with the first.
      * @return The union of the two given lists as a new array.
      */
-    public static int[] or(List<Integer> a, List<Integer> b) {
+    private static int[] or(List<Integer> a, List<Integer> b) {
         Set<Integer> acc = new TreeSet<>(a);
         acc.addAll(b);
         return toArr(acc);
@@ -148,7 +149,7 @@ public class BigboardTest {
      * @param b The second list to XOR with the first.
      * @return The XOR of the two given lists as a new array.
      */
-    public static int[] xor(List<Integer> a, List<Integer> b) {
+    private static int[] xor(List<Integer> a, List<Integer> b) {
         Set<Integer> acc = new TreeSet<>(a);
         acc.addAll(b);
         acc.removeIf(next -> a.contains(next) && b.contains(next));
@@ -165,10 +166,10 @@ public class BigboardTest {
      * @return An array of all items in the given list, in the same order, but
      * with the amount "b" added.
      */
-    public static int[] left(List<Integer> a, int b) {
+    private static int[] left(List<Integer> a, int b) {
         List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < a.size(); i++) {
-            result.add(a.get(i) + b);
+        for (int i : a) {
+            result.add(i + b);
         }
         return toArr(result);
     }
@@ -185,10 +186,10 @@ public class BigboardTest {
      * with the amount "b" subtracted. Any negative values are removed from the
      * final list.
      */
-    public static int[] right(List<Integer> a, int b) {
+    private static int[] right(List<Integer> a, int b) {
         List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < a.size(); i++) {
-            int newValue = a.get(i) - b;
+        for (int i : a) {
+            int newValue = i - b;
             if (newValue >= 0) {
                 result.add(newValue);
             }
@@ -205,7 +206,7 @@ public class BigboardTest {
      * @return A single element array of the first element in the given list. If
      * the given list is empty, this array will be empty.
      */
-    public static int[] lsb(List<Integer> a) {
+    private static int[] lsb(List<Integer> a) {
         if (a.isEmpty()) {
             return new int[0];
         } else {
@@ -224,7 +225,7 @@ public class BigboardTest {
      * @return A copy of the given list as an array and without its first
      * element. If the given list is empty, this array will be empty.
      */
-    public static int[] resetLsb(List<Integer> a) {
+    private static int[] resetLsb(List<Integer> a) {
         if (a.isEmpty()) {
             return new int[0];
         } else {
@@ -242,7 +243,7 @@ public class BigboardTest {
      * @param col The Collection to convert to an array.
      * @return An array with the same content as the given Collection.
      */
-    public static int[] toArr(Collection<Integer> col) {
+    private static int[] toArr(Collection<Integer> col) {
         int[] result = new int[col.size()];
         int i = 0;
         for (int value : col) {
@@ -478,8 +479,33 @@ public class BigboardTest {
         for (int x = 1; x < 32; x++) {
             for (int y = 1; y < 32; y++) {
                 Bigboard b = new Bigboard(x, y);
+
+                assertEquals(x, b.width());
+                assertEquals(y, b.height());
+                assertTrue(b.empty());
             }
         }
+
+        // Test construction from bit coordinates
+        List<Point> bits = new ArrayList<>();
+        for (int i = 0; i < 13; i++) {
+            bits.add(new Point(i, i));
+            if (i > 0) {
+                bits.add(new Point(i - 1, i));
+                bits.add(new Point(i, i - 1));
+            }
+        }
+        Bigboard b = new Bigboard(13, 13, bits);
+        int[] bitsArr = new int[bits.size()];
+        for (int i = 0; i < bitsArr.length; i++) {
+            bitsArr[i] = b.toIndex(bits.get(i).x, bits.get(i).y);
+        }
+        Arrays.sort(bitsArr);
+        testEq(bitsArr, b);
+
+        // Test construction from word array
+        long[] words = b.getWords();
+        assertEquals(b, new Bigboard(13, 13, words));
 
         // Test copy constructor
         for (int i = 1; i < 64; i++) {
@@ -886,5 +912,29 @@ public class BigboardTest {
         assertFalse(makeBB(13, 13, new int[]{168}).empty());
         assertFalse(makeBB(13, 13, new int[]{127}).empty());
         assertFalse(makeBB(13, 13, new int[]{128}).empty());
+    }
+
+    @Test
+    public void testEquals() {
+        Bigboard b0 = makeBB(13, 13, new int[]{});
+
+        assertNotEquals(b0, 0);
+        assertNotEquals(b0, "foobar");
+        assertNotEquals(b0, new Random());
+        assertNotEquals(b0, makeBB(12, 13, new int[]{}));
+        assertNotEquals(b0, makeBB(13, 12, new int[]{}));
+        assertNotEquals(b0, makeBB(13, 13, new int[]{168}));
+        assertEquals(b0, b0);
+        assertEquals(b0, makeBB(13, 13, new int[]{}));
+    }
+
+    @Test
+    public void testHashCode() {
+        Bigboard b0 = makeBB(13, 13, new int[]{0, 1, 127, 128, 168});
+        Bigboard b1 = makeBB(13, 13, new int[]{168, 128, 127, 1, 0});
+
+        assertEquals(b0.hashCode(), b1.hashCode());
+        assertEquals(new Bigboard(13, 13), new Bigboard(13, 13));
+        assertEquals(new Bigboard(13, 13, 9), new Bigboard(13, 13, 9));
     }
 }
